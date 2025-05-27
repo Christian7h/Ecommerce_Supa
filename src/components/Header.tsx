@@ -135,6 +135,9 @@ const Header: React.FC = () => {
                     <Link to="/profile" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                       Profile
                     </Link>
+                    <Link to="/orders" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                      Mis Órdenes
+                    </Link>
                     <button 
                       onClick={logout}
                       className="w-full text-left block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
@@ -247,6 +250,13 @@ const Header: React.FC = () => {
                     onClick={toggleMenu}
                   >
                     My Profile
+                  </Link>
+                  <Link 
+                    to="/orders" 
+                    className="text-lg font-medium py-2 border-b border-gray-100"
+                    onClick={toggleMenu}
+                  >
+                    Mis Órdenes
                   </Link>
                   <button 
                     className="text-lg font-medium py-2 border-b border-gray-100 flex items-center"

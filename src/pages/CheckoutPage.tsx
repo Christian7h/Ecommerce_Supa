@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useCartStore  } from '../store/cartStore';
+import { useCartStore } from '../store/cartStore';
+import { useAuthStore } from '../store/authStore';
+import { useWebpay } from '../hooks/useWebpay';
 
 
 
@@ -8,9 +10,86 @@ import { useCartStore  } from '../store/cartStore';
 
 const CheckoutPage = () => {
   const navigate = useNavigate();
-  
-const cart = useCartStore((state) => state.items);
-const total = useCartStore((state) => state.totalPrice());
+  const { user } = useAuthStore();
+  const cart = useCartStore((state) => state.items);
+  const total = useCartStore((state) => state.totalPrice());
+  const { createTransaction, loading, error, clearError } = useWebpay();
+
+  const [formData, setFormData] = useState({
+    name: user?.name || '',
+    email: user?.email || '',
+    address: '',
+    city: '',
+    postal_code: '',
+  });
+
+  const [formErrors, setFormErrors] = useState<{[key: string]: string}>({});
+
+  // Redirigir a login si no está autenticado
+  if (!user) {
+    navigate('/login');
+    return null;
+  }
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+    
+    // Limpiar error cuando el usuario empiece a escribir
+    if (formErrors[name]) {
+      setFormErrors(prev => ({
+        ...prev,
+        [name]: ''
+      }));
+    }
+  };
+
+  const validateForm = () => {
+    const errors: {[key: string]: string} = {};
+    
+    if (!formData.name.trim()) {
+      errors.name = 'El nombre es requerido';
+    }
+    
+    if (!formData.email.trim()) {
+      errors.email = 'El email es requerido';
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      errors.email = 'El email no es válido';
+    }
+    
+    if (!formData.address.trim()) {
+      errors.address = 'La dirección es requerida';
+    }
+    
+    if (!formData.city.trim()) {
+      errors.city = 'La ciudad es requerida';
+    }
+    
+    if (!formData.postal_code.trim()) {
+      errors.postal_code = 'El código postal es requerido';
+    }
+    
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!validateForm()) {
+      return;
+    }
+
+    try {
+      clearError();
+      await createTransaction(formData);
+    } catch (err) {
+      console.error('Error al procesar el pago:', err);
+    }
+  };
 
   if (cart.length === 0) {
     return (
@@ -64,71 +143,137 @@ const total = useCartStore((state) => state.totalPrice());
 
         {/* Checkout Form */}
         <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-lg font-medium text-gray-900 mb-6">Shipping Information</h2>
-          <form className="space-y-4">
+          <h2 className="text-lg font-medium text-gray-900 mb-6">Información de Envío</h2>
+          
+          {error && (
+            <div className="mb-4 p-4 border border-red-300 rounded-md bg-red-50">
+              <p className="text-sm text-red-600">{error}</p>
+            </div>
+          )}
+          
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                Full Name
+                Nombre Completo *
               </label>
               <input
                 type="text"
                 id="name"
                 name="name"
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                value={formData.name}
+                onChange={handleInputChange}
+                className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm ${
+                  formErrors.name ? 'border-red-300' : ''
+                }`}
               />
+              {formErrors.name && (
+                <p className="mt-1 text-sm text-red-600">{formErrors.name}</p>
+              )}
             </div>
+            
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                Email
+                Email *
               </label>
               <input
                 type="email"
                 id="email"
                 name="email"
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                value={formData.email}
+                onChange={handleInputChange}
+                className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm ${
+                  formErrors.email ? 'border-red-300' : ''
+                }`}
               />
+              {formErrors.email && (
+                <p className="mt-1 text-sm text-red-600">{formErrors.email}</p>
+              )}
             </div>
+            
             <div>
               <label htmlFor="address" className="block text-sm font-medium text-gray-700">
-                Address
+                Dirección *
               </label>
               <input
                 type="text"
                 id="address"
                 name="address"
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                value={formData.address}
+                onChange={handleInputChange}
+                className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm ${
+                  formErrors.address ? 'border-red-300' : ''
+                }`}
               />
+              {formErrors.address && (
+                <p className="mt-1 text-sm text-red-600">{formErrors.address}</p>
+              )}
             </div>
+            
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label htmlFor="city" className="block text-sm font-medium text-gray-700">
-                  City
+                  Ciudad *
                 </label>
                 <input
                   type="text"
                   id="city"
                   name="city"
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                  value={formData.city}
+                  onChange={handleInputChange}
+                  className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm ${
+                    formErrors.city ? 'border-red-300' : ''
+                  }`}
                 />
+                {formErrors.city && (
+                  <p className="mt-1 text-sm text-red-600">{formErrors.city}</p>
+                )}
               </div>
+              
               <div>
                 <label htmlFor="postal_code" className="block text-sm font-medium text-gray-700">
-                  Postal Code
+                  Código Postal *
                 </label>
                 <input
                   type="text"
                   id="postal_code"
                   name="postal_code"
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                  value={formData.postal_code}
+                  onChange={handleInputChange}
+                  className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm ${
+                    formErrors.postal_code ? 'border-red-300' : ''
+                  }`}
                 />
+                {formErrors.postal_code && (
+                  <p className="mt-1 text-sm text-red-600">{formErrors.postal_code}</p>
+                )}
               </div>
             </div>
-            <button
-              type="submit"
-              className="w-full bg-indigo-600 border border-transparent rounded-md shadow-sm py-3 px-4 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-            >
-              Continue to Payment
-            </button>
+            
+            <div className="border-t border-gray-200 pt-6">
+              <div className="mb-4">
+                <h3 className="text-lg font-medium text-gray-900">Método de Pago</h3>
+                <div className="mt-2 flex items-center">
+                  <img 
+                    src="https://www.webpay.cl/portales-estaticos-webpay/webpay/img/logos/webpay-color.svg" 
+                    alt="Webpay" 
+                    className="h-8"
+                  />
+                  <span className="ml-2 text-sm text-gray-600">Pago seguro con Webpay</span>
+                </div>
+              </div>
+              
+              <button
+                type="submit"
+                disabled={loading}
+                className={`w-full border border-transparent rounded-md shadow-sm py-3 px-4 text-base font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${
+                  loading 
+                    ? 'bg-gray-400 cursor-not-allowed' 
+                    : 'bg-indigo-600 hover:bg-indigo-700'
+                }`}
+              >
+                {loading ? 'Procesando...' : `Pagar $${total.toFixed(2)} con Webpay`}
+              </button>
+            </div>
           </form>
         </div>
       </div>

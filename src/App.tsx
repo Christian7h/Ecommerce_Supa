@@ -13,6 +13,8 @@ import CheckoutPage from './pages/CheckoutPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import ProfilePage from './pages/ProfilePage';
+import PaymentSuccessPage from './pages/PaymentSuccessPage';
+import OrdersPage from './pages/OrdersPage';
 
 // Admin Pages
 import AdminDashboard from './pages/admin/Dashboard';
@@ -36,6 +38,8 @@ function App() {
           <Route path="login" element={<LoginPage />} />
           <Route path="register" element={<RegisterPage />} />
           <Route path="profile" element={<ProfilePage />} />
+          <Route path="orders" element={<OrdersPage />} />
+          <Route path="payment-success" element={<PaymentSuccessPage />} />
         </Route>
 
         {/* Admin Routes */}

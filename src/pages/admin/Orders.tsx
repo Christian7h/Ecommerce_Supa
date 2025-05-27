@@ -10,7 +10,8 @@ import {
   Clock,
   AlertCircle
 } from 'lucide-react';
-import { supabase } from '../../lib/supabase';
+import { supabase, getAllOrders } from '../../lib/supabase';
+import { downloadInvoice } from '../../lib/invoiceGenerator';
 
 interface Order {
   id: string;
@@ -18,7 +19,18 @@ interface Order {
   status: string;
   total: number;
   created_at: string;
-  shipping_address: any;
+  shipping_address: {
+    name?: string;
+    email?: string;
+    address?: string;
+    street?: string;
+    city?: string;
+    state?: string;
+    postal_code?: string;
+    zip?: string;
+    phone?: string;
+    country?: string;
+  };
 }
 
 interface OrderItem {
@@ -56,14 +68,14 @@ const OrdersAdmin: React.FC = () => {
   const fetchOrders = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('orders')
-        .select('*')
-        .order('created_at', { ascending: false });
+      console.log('Fetching orders...');
       
-      if (error) throw error;
+      const data = await getAllOrders();
+      
+      console.log('Orders data:', data);
       
       setOrders(data || []);
+      console.log('Orders set:', data?.length || 0, 'orders');
     } catch (error) {
       console.error('Error fetching orders:', error);
     } finally {
@@ -133,6 +145,35 @@ const OrdersAdmin: React.FC = () => {
       }
     } catch (error) {
       console.error('Error updating order status:', error);
+    }
+  };
+
+  const handleDownloadInvoice = async (order: Order) => {
+    try {
+      let items = orderItems;
+      
+      // Si no tenemos items cargados (desde tabla principal), cargarlos
+      if (!items || items.length === 0 || order.id !== selectedOrder?.id) {
+        const { data: fetchedItems, error } = await supabase
+          .from('order_items')
+          .select(`
+            *,
+            products (name, images)
+          `)
+          .eq('order_id', order.id);
+        
+        if (error) throw error;
+        items = fetchedItems || [];
+      }
+      
+      // Crear objeto con la estructura esperada por el generador de facturas
+      const invoiceOrder = {
+        ...order,
+        order_items: items
+      };
+      downloadInvoice(invoiceOrder, items);
+    } catch (error) {
+      console.error('Error al generar factura:', error);
     }
   };
   
@@ -301,6 +342,7 @@ const OrdersAdmin: React.FC = () => {
                           <Eye size={18} />
                         </button>
                         <button
+                          onClick={() => handleDownloadInvoice(order)}
                           className="text-gray-600 hover:text-gray-900"
                           title="Download Invoice"
                         >
@@ -495,6 +537,7 @@ const OrdersAdmin: React.FC = () => {
                     Close
                   </button>
                   <button
+                    onClick={() => handleDownloadInvoice(selectedOrder)}
                     className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center"
                   >
                     <Download size={16} className="mr-2" />
