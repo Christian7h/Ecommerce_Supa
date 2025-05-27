@@ -39,16 +39,16 @@ const ProductCard: React.FC<ProductProps> = ({
     addItem(item);
   };
   
-  const formattedPrice = new Intl.NumberFormat('en-US', {
+  const formattedPrice = new Intl.NumberFormat('es-CL', {
     style: 'currency',
-    currency: 'USD',
-  }).format(price);
+    currency: 'CLP',
+  }).format(price); 
   
   const formattedSalePrice = salePrice
-    ? new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: 'USD',
-      }).format(salePrice)
+    ? new Intl.NumberFormat('es-CL', {
+      style: 'currency',
+      currency:"CLP"
+    }).format(salePrice)
     : null;
 
   return (

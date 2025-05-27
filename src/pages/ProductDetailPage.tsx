@@ -126,15 +126,15 @@ const ProductDetailPage: React.FC = () => {
     );
   }
   
-  const formattedPrice = new Intl.NumberFormat('en-US', {
+  const formattedPrice = new Intl.NumberFormat('es-CL', {
     style: 'currency',
-    currency: 'USD',
+    currency: 'CLP',
   }).format(product.price);
   
   const formattedSalePrice = product.sale_price
-    ? new Intl.NumberFormat('en-US', {
+    ? new Intl.NumberFormat('es-CL', {
         style: 'currency',
-        currency: 'USD',
+        currency: 'CLP',
       }).format(product.sale_price)
     : null;
   

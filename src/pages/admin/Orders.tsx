@@ -220,9 +220,9 @@ const OrdersAdmin: React.FC = () => {
   };
   
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat('es-CL', {
       style: 'currency',
-      currency: 'USD',
+      currency: 'CLP',
     }).format(amount);
   };
   

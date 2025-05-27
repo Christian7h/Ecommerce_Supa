@@ -164,7 +164,10 @@ const OrdersPage: React.FC = () => {
                     <div className="text-right">
                       <p className="text-sm font-medium text-gray-900 flex items-center">
                         <DollarSign className="h-4 w-4" />
-                        {order.total.toFixed(2)}
+                        {order.total.toLocaleString('es-CL', {
+                          style: 'currency',
+                          currency: 'CLP',
+                        })}
                       </p>
                     </div>
                   </div>
@@ -192,7 +195,10 @@ const OrdersPage: React.FC = () => {
                       </div>
                       <div className="flex-shrink-0">
                         <p className="text-sm font-medium text-gray-900">
-                          ${(item.price * item.quantity).toFixed(2)}
+                          {(item.price * item.quantity).toLocaleString('es-CL', {
+                            style: 'currency',
+                            currency: 'CLP',
+                          })}
                         </p>
                       </div>
                     </div>
