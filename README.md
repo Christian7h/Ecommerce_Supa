@@ -12,6 +12,7 @@ Una plataforma de comercio electrónico completa inspirada en Adidas Chile, con 
 - Diseño responsivo para todos los dispositivos
 - Integración con Supabase para base de datos y autenticación
 - Integración con Cloudinary para almacenamiento de imágenes
+- -Integracion con Transbank WebpayPlus modo Desarrollo 
 - Personalización completa del sitio (banners, secciones destacadas, etc.)
 
 ## Tecnologías utilizadas
